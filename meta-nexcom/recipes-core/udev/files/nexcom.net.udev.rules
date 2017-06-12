@@ -1,0 +1,4 @@
+KERNEL=="eth*", ATTR{address}=="00:10:f3:67:07:00", NAME="eth0"
+KERNEL=="eth*", ATTR{address}=="00:10:f3:67:07:01", NAME="eth1"
+KERNEL=="eth*", DRIVERS=="GobiNet", ATTR{address}=="*:08", NAME="eth2"
+KERNEL=="eth*", DRIVERS=="GobiNet", ATTR{address}=="*:0a", NAME="eth3"

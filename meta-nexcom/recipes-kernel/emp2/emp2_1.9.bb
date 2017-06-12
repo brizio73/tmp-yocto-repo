@@ -1,0 +1,13 @@
+SUMMARY = "emp2 module"
+LICENSE = "GPLv2"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
+
+inherit module
+
+SRC_URI= " \
+         file://xr17v35x.c \
+         file://Makefile"
+
+S = "${WORKDIR}"
+
+COMPATIBLE_MACHINE = "(genericx86-64)"

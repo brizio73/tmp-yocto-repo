@@ -1,0 +1,1 @@
+aggiunta recipe per regole aggiuntive udev

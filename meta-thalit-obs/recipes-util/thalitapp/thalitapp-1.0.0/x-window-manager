@@ -1,0 +1,50 @@
+#!/bin/bash
+
+result=0
+
+if [ -x /opt/tpkg/01_monitrc/bin/calibr.sh ]; then
+    /opt/tpkg/01_monitrc/bin/calibr.sh
+    result=$?
+fi
+
+COUNTER=0
+
+SCRIPTDIR=/opt/wtpkg/initX11
+startscripts=$(ls ${SCRIPTDIR}/S* 2>/dev/null)
+for f in $startscripts
+do
+    $f
+    COUNTER=$((COUNTER+1))
+done
+
+if [ ${COUNTER} -eq 0 ]; then
+    matchbox-window-manager &
+    PID=$!
+    
+    xterm &
+    PIDXTERM=$!
+    
+    BINARYZENITY="zenity"
+    BINARYZENITYPATH=$(which ${BINARYZENITY})
+    resultq=0
+    if [ "x${BINARYZENITYPATH}" != "x" ]; then
+        ${BINARYZENITYPATH} --info --title="shutdown" --text="Now is safe to shutdown"
+        resultq=$?
+    else
+        xterm +fullscreen -e sh -c 'dialog --msgbox Now\ Is\ safe\ to\ shutdown 10 50'
+        resultq=$?
+    fi
+    kill -KILL ${PID}
+    kill -KILL ${PIDXTERM}
+    
+    if [ $resultq -eq 0 ]; then
+        shutdown -h now
+        #the following sleep is to be sure to avoid to have an x11 restart
+        sleep 120
+    fi
+else
+    echo "export DISPLAY=$DISPLAY" >/opt/wtpkg/X11DISPLAY.sh
+    if [ $result -eq 0 ]; then
+        exec matchbox-window-manager
+    fi
+fi

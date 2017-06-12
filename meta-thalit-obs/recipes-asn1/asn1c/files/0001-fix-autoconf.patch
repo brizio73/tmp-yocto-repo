@@ -1,0 +1,12 @@
+--- asn1c-0.9.27/configure.ac	2016-06-06 10:43:34.105991430 +0200
++++ asn1c-0.9.27/configure.ac	2016-06-06 10:43:50.333580855 +0200
+@@ -3,6 +3,9 @@
+ AC_CONFIG_HEADER([config.h])
+ AC_CONFIG_MACRO_DIR([m4])
+ 
++m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
++LT_INIT
++
+ AM_MAINTAINER_MODE
+ 
+ AM_PROG_LIBTOOL

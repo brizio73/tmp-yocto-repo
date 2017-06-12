@@ -1,0 +1,49 @@
+diff -rupN runit-2.1.1.orig/src/Makefile runit-2.1.1/src/Makefile
+--- runit-2.1.1.orig/src/Makefile	2009-10-04 22:44:02.000000000 +0200
++++ runit-2.1.1/src/Makefile	2013-07-30 13:23:51.712926518 +0200
+@@ -95,8 +95,7 @@ fmt_ptime.o: compile sysdeps fmt_ptime.c
+ 	./compile fmt_ptime.c
+ 
+ reboot_system.h: choose compile reboot_system.h1 reboot_system.h2
+-	./choose c tryreboot reboot_system.h1 reboot_system.h2 > \
+-	  reboot_system.h
++	cp reboot_system.h2  reboot_system.h
+ 
+ uw_tmp.h: compile uw_tmp.h1 uw_tmp.h2
+ 	( ./compile tryuwtmpx.c 2>/dev/null && cat uw_tmp.h2 >uw_tmp.h ) || \
+@@ -191,7 +190,7 @@ compile: conf-cc print-cc.sh systype war
+ 	chmod 555 compile
+ 
+ direntry.h: choose compile direntry.h1 direntry.h2 trydrent.c
+-	./choose c trydrent direntry.h1 direntry.h2 > direntry.h
++	cp direntry.h1 direntry.h
+ 
+ env.o: compile env.c env.h str.h
+ 	./compile env.c
+@@ -221,21 +220,20 @@ fmt_ulong.o: compile fmt.h fmt_ulong.c
+ 	./compile fmt_ulong.c
+ 
+ hasflock.h: choose compile hasflock.h1 hasflock.h2 load tryflock.c
+-	./choose cl tryflock hasflock.h1 hasflock.h2 > hasflock.h
++	cp hasflock.h1 hasflock.h
+ 
+ hasmkffo.h: choose compile hasmkffo.h1 hasmkffo.h2 load trymkffo.c
+-	./choose cl trymkffo hasmkffo.h1 hasmkffo.h2 > hasmkffo.h
++	cp hasmkffo.h1  hasmkffo.h
+ 
+ hassgact.h: choose compile hassgact.h1 hassgact.h2 load trysgact.c
+-	./choose cl trysgact hassgact.h1 hassgact.h2 > hassgact.h
++	cp hassgact.h1 hassgact.h
+ 
+ hassgprm.h: choose compile hassgprm.h1 hassgprm.h2 load trysgprm.c
+-	./choose cl trysgprm hassgprm.h1 hassgprm.h2 > hassgprm.h
++	cp hassgprm.h1 hassgprm.h
+ 
+ hasshsgr.h: chkshsgr choose compile hasshsgr.h1 hasshsgr.h2 load \
+ tryshsgr.c warn-shsgr
+-	./chkshsgr || ( cat warn-shsgr; exit 1 )
+-	./choose clr tryshsgr hasshsgr.h1 hasshsgr.h2 > hasshsgr.h
++	cp hasshsgr.h1 hasshsgr.h
+ 
+ haswaitp.h: choose compile haswaitp.h1 haswaitp.h2 load trywaitp.c
+ 	./choose cl trywaitp haswaitp.h1 haswaitp.h2 > haswaitp.h

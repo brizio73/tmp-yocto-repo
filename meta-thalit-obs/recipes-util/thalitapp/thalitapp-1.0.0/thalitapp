@@ -1,0 +1,250 @@
+#!/bin/bash
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+SCRIPTDIR=/opt/tpkg/rc
+
+
+function exist_kernel_option {
+    OPTIONNAME=$1
+    cat /proc/cmdline | grep $OPTIONNAME >/dev/null
+    result=$?
+        
+    if [ "${result}" -eq "0" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+#check mount point
+function checkMountPoint {
+    mountpoint=$1
+    targz=$2
+    fstype=$3
+    fslabel=$4
+    forcecheck=0
+    if [ "x$5" != "x" ]; then
+        forcecheck=$5
+    fi
+    mount | grep "on ${mountpoint} type" >/dev/null
+    result=$?
+    if [ "$result" -eq "0" ]; then
+        #mounted
+        echo "FILE SYSTEM ALREADY ${mountpoint} MOUNTED"
+    else
+        #not mounted
+        if [ "$forcecheck" -eq "1" ]; then
+            $device=$(cat /etc/fstab | grep "${mountpoint}" | cut -f1 -d' ')
+            if [ "x${device}" != "x" ]; then
+                MKFS=$(which mkfs.${fstype})
+                FSCK=$(which fsck.${fstype})
+                if [ "x${FSCK}" != "x" ]; then
+                
+                    $FSCK -n ${device}
+                    result=$?
+                    #0    - No errors
+                    #1    - File system errors corrected
+                    #2    - File system errors corrected, system should
+                    #         be rebooted
+                    #4    - File system errors left uncorrected
+                    #8    - Operational error
+                    #16   - Usage or syntax error
+                    #32   - E2fsck canceled by user request
+                    #128  - Shared library error
+                    if [ "$result" -eq "0" ]; then
+                        echo "device $device is OK"
+                    elif [ "$result" -eq "1" ]; then
+                        echo "File system errors corrected on device $device"
+                        if [ "x${MKFS}" != "x" ]; then
+                            ${MKFS} -F -L ${fslabel} ${device}
+                        else
+                            echo "unavailable mkfs.${fstype}"
+                        fi
+                    elif [ "$result" -eq "2" ]; then
+                        echo "File system errors corrected on device $device"
+                        if [ "x${MKFS}" != "x" ]; then
+                            ${MKFS} -F -L ${fslabel} ${device}
+                        else
+                            echo "unavailable mkfs.${fstype}"
+                        fi
+                    elif [ "$result" -eq "4" ]; then
+                        echo "File system errors left uncorrected $device"
+                        if [ "x${MKFS}" != "x" ]; then
+                            ${MKFS} -F -L ${fslabel} ${device}
+                        else
+                            echo "unavailable mkfs.${fstype}"
+                        fi
+                    elif [ "$result" -eq "8" ]; then
+                        echo "Operational error on device $device"
+                        if [ "x${MKFS}" != "x" ]; then
+                            ${MKFS} -F -L ${fslabel} ${device}
+                        else
+                            echo "unavailable mkfs.${fstype}"
+                        fi
+                    else
+                        echo "error $result on device $device"
+                        if [ "x${MKFS}" != "x" ]; then
+                            ${MKFS} -F -L ${fslabel} ${device}
+                        else
+                            echo "unavailable mkfs.${fstype}"
+                        fi
+                    fi
+                else
+                    echo "unavailable fsck.${fstype}"
+                fi
+            else
+                echo "UNKNOWN DEVICE FOR MOUNTPOINT ${mountpoint}"
+            fi
+        fi
+        echo "TRY TO MOUNT ${mountpoint}"
+        if exist_kernel_option thalit_recover; then
+            echo "FORCE RECOVER PARTITION FROM KERNEL PARAMERER"
+            result=32
+        else
+            mount ${mountpoint} >/dev/null 2>/dev/null
+            result=$?
+        fi
+        if [ "$result" -eq "0" ]; then
+            #0 success
+            echo "Success"
+        elif [ "$result" -eq "1" ]; then
+            #1 incorrect invocation or permissions
+            echo "incorrect invocation or permissions"
+        elif [ "$result" -eq "2" ]; then
+            #2 system error (out of memory, cannot fork, no more loop devices)
+            echo "system error (out of memory, cannot fork, no more loop devices)"
+        elif [ "$result" -eq "4" ]; then
+            #4 internal mount bug or missing nfs support in mount
+            echo "internal mount bug or missing nfs support in mount"
+        elif [ "$result" -eq "8" ]; then
+            #8 user interrupt
+            echo "user interrupt"
+        elif [ "$result" -eq "16" ]; then
+            #16 problems writing or locking /etc/mtab
+            echo "problems writing or locking /etc/mtab"
+        elif [ "$result" -eq "32" ]; then
+            #32 mount failure
+            echo "mount failure"
+            echo "try to recreate filesystem for ${mountpoint}"
+            $device=$(cat /etc/fstab | grep "${mountpoint}" | cut -f1 -d' ')
+            if [ "x${device}" != "x" ]; then
+                # the following sleep is only to have the possibility to switch off
+                sleep 20
+                #
+                #
+                if [ "x${fstype}" = "x" ]; then
+                    fstype=ext4
+                fi
+                
+                if [ "${fstype}" != "auto" ]; then
+                    if [ "x${fslabel}" = "x" ]; then
+                        fslabel=unknown
+                    fi
+                    MKFS=$(which mkfs.${fstype})
+                    
+                    if [ "x${MKFS}" != "x" ]; then
+                        ${MKFS} -F -L ${fslabel} ${device}
+                        echo "remount ${mountpoint}"
+                        mount ${mountpoint} >/dev/null 2>/dev/null
+                        result=$?
+                        if [ "$result" -eq "0" ]; then
+                            #0 success
+                            echo "Success"
+                            if [ "x${targz}" != "x" ]; then
+                                echo "RESTORE DATA..."
+                                if [ -f "${targz}" ]; then
+                                    tar -xj -f "${targz}" -C ${mountpoint}
+                                    echo "DONE."
+                                else
+                                    echo "try to download from repo ... (my ip is 192.168.7.2)"
+                                    echo "download: http://192.168.7.1/filesystem${targz}"
+                                    ifconfig eth0 192.168.7.2 netmask 255.255.255.0 up
+                                    
+                                    wget -O /tmp${targz} http://192.168.7.1/filesystem${targz}
+                                    if [ -f "/tmp${targz}" ]; then
+                                        echo "RESTORE DATA..."
+                                        tar -xj -f "/tmp${targz}" -C ${mountpoint}
+                                        echo "DONE."
+                                    fi
+                                    
+                                    ifconfig eth0 down
+                                fi
+                            fi
+                        else
+                            echo "Error it is better to stop"
+                        fi
+                    else
+                        echo "it is not possible to create filesystem for type: ${fstype}"
+                    fi
+                else
+                    echo "Error it is better to stop because thereis problem on filesystem 1"
+                fi
+            else
+                echo "/etc/fstab not well configured to mount ${mountpoint}"
+            fi
+        elif [ "$result" -eq "64" ]; then
+            #64 some mount succeeded
+            echo "some mount succeeded"
+        else
+            echo "unknown error code"
+        fi
+    fi
+    #return 0 if mounted
+    #return 1 if not mounted
+    return $result
+}
+
+
+
+
+[ -f /etc/default/rcS ] && . /etc/default/rcS
+
+case "$1" in
+    start)
+    if exist_kernel_option thalit_no_full; then
+        echo "THALIT APP DISABLED FROM KERNEL PARAM"
+    else
+        # Application file systam
+        checkMountPoint "/opt/tpkg" "/tpkgfs.tar.gz" "ext4" "tpkgfs"
+        result=$?
+        if [ "$result" -eq "1" ]; then
+            echo "IMPOSSIBLE TO MOUNT TPTKG FILE"
+            echo "RECOVERY MODE SET IP 192.168.7.2 on eth0"
+            ifconfig eth0 192.168.7.2 netmask 255.255.255.0 up
+        else
+            # Repository
+            checkMountPoint "/opt/repo" "" "ext4" "repofs"
+            # backup application
+            checkMountPoint "/opt/backup" "" "ext4" "backupfs"
+            # persistent log
+            checkMountPoint "/opt/log" "ext2" "logfs" 1
+            
+            #launch start script
+            startscripts=$(ls -1 ${SCRIPTDIR}/S* 2>/dev/null)
+            for f in $startscripts
+            do
+                $f
+            done
+        fi
+    fi
+	;;
+    stop)
+    if exist_kernel_option thalit_no_full; then
+        echo "THALIT APP DISABLED FROM KERNEL PARAM"
+    else
+        #launch stop script
+        stopscripts=$(ls -1 ${SCRIPTDIR}/K* 2>/dev/null)
+        for f in $stopscripts
+        do
+            $f
+        done
+    fi
+	;;
+    *)
+	echo "Usage: /etc/init.d/thalitapp {start|stop}"
+	exit 1
+	;;
+esac
+
+exit 0
+

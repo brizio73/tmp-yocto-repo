@@ -1,0 +1,19 @@
+diff --git a/mk/Variables.mk b/mk/Variables.mk
+index 99f787c..45d1559 100644
+--- a/mk/Variables.mk
++++ b/mk/Variables.mk
+@@ -43,10 +43,10 @@ CFLAGS		+= -Wall -Wmissing-prototypes -Wstrict-prototypes \
+ CXXFLAGS	+= -Wall -Wpointer-arith -Wunused
+ 
+ # add /usr/local to the search path if something is in there ...
+-ifneq ($(wildcard /usr/local/include/*.h),)
+-  CFLAGS  += -I/usr/local/include
+-  LDFLAGS += -L/usr/local/$(LIB)
+-endif
++#ifneq ($(wildcard /usr/local/include/*.h),)
++#  CFLAGS  += -I/usr/local/include
++#  LDFLAGS += -L/usr/local/$(LIB)
++#endif
+ 
+ # fixup include path for $(srcdir) != "."
+ ifneq ($(srcdir),.)

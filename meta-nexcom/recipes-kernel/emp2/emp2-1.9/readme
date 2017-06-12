@@ -1,0 +1,113 @@
+=============================================================================
+
+        EXAR PCIe Multiport Device Driver Ver 1.9 Installation Guide
+         for Linux Kernel 3.10.0(Tested on 3.10, 3.11)
+			Copyright (C) 2014, EXAR.
+=============================================================================
+Content
+
+1. Introduction
+2. System Requirement
+3. Installation
+4. Utilities
+5. Setserial
+6. Troubleshooting
+
+-----------------------------------------------------------------------------
+1. Introduction
+
+   The PCIe Multiport serial driver Ver 1.9, supports following multiport
+   boards.
+
+      - XR17V258 PCI Multiport (8 Channels) Boards
+      - XR17V254 PCI Multiport (4 Channels) Boards
+      - XR17V252 PCI Multiport (2 Channels) Boards
+	- XR17V358 & XR17V4354 PCIe Multiport (8 Channels) Boards
+      - XR17V354 PCIe Multiport (4 Channels) Boards
+      - XR17V352 PCIe Multiport (2 Channels) Boards
+      - XR17V4358 & XR17V8354 PCIe Multiport (12 Channels) Boards
+      - XR17V8358 PCIe Multiport (16 Channels) Boards
+
+   This driver and installation procedure have been developed upon Linux Kernel
+   3.10.0 and tested with Centos6.4(kernel been update to 3.10.0)
+
+   All the drivers and utilities are published in form of source code under
+   GNU General Public License in this version. Please refer to GNU General
+   Public License announcement in each source code file for more detail.
+
+   This version of driver can be installed as Loadable Module (Module driver)
+   or built-in into kernel (Static driver). You may refer to following
+   installation procedure for suitable one. Before you install the driver,
+   please refer to hardware installation procedure in the User's Manual.
+
+   We assume the user should be familiar with following documents.
+   - Serial-HOWTO
+   - Kernel-HOWTO
+
+-----------------------------------------------------------------------------
+2. System Requirement
+   - Hardware platform: Intel x86
+   - Kernel version: 3.10.0
+   - Maximum of 256 ports can be installed in any PCIe board combination
+   - This driver has only been tested with Centos6.4(kernel been update to 3.10.0) and it is
+     strongly recommended that the user do a complete install of all components
+     to ensure that this driver works correctly.
+
+-----------------------------------------------------------------------------
+3. Installation
+
+   3.1 Hardware installation
+      
+      You may need to adjust IRQ usage in BIOS to avoid IRQ conflict with legacy
+      ISA devices. 
+
+   3.2 Driver files and device naming convention
+
+       The driver file may be obtained via email. The first step, anyway, is to
+       copy driver file "xr17v35x-lnx3.x.x-pak_ver1.9" into specified
+       directory. e.g. /exar. The execute commands as below.
+
+       # cd /exar/xr17v25x_35x-lnx3.10-pak_ver1.9
+         
+       You may find the driver soruce code in /exar/xr17v35x-lnx3.x.x-pak_ver1.9.
+
+       Dialin and callout port
+       -----------------------
+       This driver creates traditional serial device names, "/dev/ttyXR0" onwards.
+
+       Device naming when multiple boards are installed
+       -----------------------------------------------
+       Naming convention for each multiport board is pre-defined
+       as below, assuming 2 XR17V358 boards, 1 XR17V354 board and
+       1 XR17V352 board.
+
+       Board Num.	 Port Name
+       1st board (358)	ttyXR0  - ttyXR7
+       2nd board (358)	ttyXR8  - ttyXR15
+       3rd board (354)	ttyXR16 - ttyXR19
+       4th board (352)	ttyXR24 - ttyXR25
+
+   3.3 Module driver configuration
+       
+	1. Find "Makefile" in /exar/xr17v35x-lnx3.x.x-pak, then run
+	  # make
+	  
+          The driver file "xr17v35x.ko" will be properly compiled.
+	  Then run
+
+          # insmod xr17v35x.ko
+
+	  to activate the module driver. You may run "lsmod" to check
+          if "xr17v35x.ko" is activated.
+
+       2. This module registers Exar ports as "/dev/ttyXR0", "/dev/ttyXR1", etc. Use "minicom" or your custom serial application to test the ports
+   
+   3.4 Verify driver installation
+       You may refer to /var/log/messages to check the latest status
+       log reported by this driver whenever it's activated.
+
+4. Troubleshooting
+
+   The boot time error mesages and solutions are stated as clearly as
+   possible. If all the possible solutions fail, please contact our technical
+   support team (uarttechsupport@exar.com) to get more help.

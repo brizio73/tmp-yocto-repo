@@ -1,0 +1,105 @@
+diff --git a/buildutils/detect.py b/buildutils/detect.py
+index b3dcdaa..e3a164e 100644
+--- a/buildutils/detect.py
++++ b/buildutils/detect.py
+@@ -28,39 +28,6 @@ pjoin = os.path.join
+ # Utility functions (adapted from h5py: http://h5py.googlecode.com)
+ #-----------------------------------------------------------------------------
+ 
+-def test_compilation(cfile, compiler=None, **compiler_attrs):
+-    """Test simple compilation with given settings"""
+-    if compiler is None or isinstance(compiler, str):
+-        cc = ccompiler.new_compiler(compiler=compiler)
+-        customize_compiler(cc)
+-        if cc.compiler_type == 'mingw32':
+-            customize_mingw(cc)
+-    else:
+-        cc = compiler
+-    
+-    for name, val in compiler_attrs.items():
+-        setattr(cc, name, val)
+-    
+-    efile, ext = os.path.splitext(cfile)
+-
+-    cpreargs = lpreargs = None
+-    if sys.platform == 'darwin':
+-        # use appropriate arch for compiler
+-        if platform.architecture()[0]=='32bit':
+-            if platform.processor() == 'powerpc':
+-                cpu = 'ppc'
+-            else:
+-                cpu = 'i386'
+-            cpreargs = ['-arch', cpu]
+-            lpreargs = ['-arch', cpu, '-undefined', 'dynamic_lookup']
+-        else:
+-            # allow for missing UB arch, since it will still work:
+-            lpreargs = ['-undefined', 'dynamic_lookup']
+-    extra = compiler_attrs.get('extra_compile_args', None)
+-
+-    objs = cc.compile([cfile],extra_preargs=cpreargs, extra_postargs=extra)
+-    cc.link_executable(objs, efile, extra_preargs=lpreargs)
+-    return efile
+ 
+ def compile_and_run(basedir, src, compiler=None, **compiler_attrs):
+     if not os.path.exists(basedir):
+@@ -78,6 +45,7 @@ def compile_and_run(basedir, src, compiler=None, **compiler_attrs):
+         shutil.rmtree(basedir)
+     
+     return result.returncode, so, se
++
+     
+     
+ def detect_zmq(basedir, compiler=None, **compiler_attrs):
+@@ -106,35 +74,9 @@ def detect_zmq(basedir, compiler=None, **compiler_attrs):
+         The compiler options used to compile the test function, e.g. `include_dirs`,
+         `library_dirs`, `libs`, etc.
+     """
+-    
+-    cfile = pjoin(basedir, 'vers.c')
+-    shutil.copy(pjoin(os.path.dirname(__file__), 'vers.c'), cfile)
+-    
+-    # check if we need to link against Realtime Extensions library
+-    if sys.platform.startswith('linux'):
+-        cc = ccompiler.new_compiler(compiler=compiler)
+-        cc.output_dir = basedir
+-        if not cc.has_function('timer_create'):
+-            compiler_attrs['libraries'].append('rt')
+-            
+-    efile = test_compilation(cfile, compiler=compiler, **compiler_attrs)
+-    
+-    result = Popen(efile, stdout=PIPE, stderr=PIPE)
+-    so, se = result.communicate()
+-    # for py3k:
+-    so = so.decode()
+-    se = se.decode()
+-    if result.returncode:
+-        msg = "Error running version detection script:\n%s\n%s" % (so,se)
+-        logging.error(msg)
+-        raise IOError(msg)
+-
+-    handlers = {'vers':  lambda val: tuple(int(v) for v in val.split('.'))}
+-
+-    props = {}
+-    for line in (x for x in so.split('\n') if x):
+-        key, val = line.split(':')
+-        props[key] = handlers[key](val)
++    detected = {}
++    detected['vers'] = (3,2,4)
++    detected['settings'] = {}
+ 
+-    return props
++    return detected
+ 
+diff --git a/setup.py b/setup.py
+index 238f44e..7c46d15 100755
+--- a/setup.py
++++ b/setup.py
+@@ -73,7 +73,7 @@ from buildutils import (
+     info, warn, fatal, debug, line, copy_and_patch_libzmq, localpath,
+     fetch_libzmq, stage_platform_hpp,
+     bundled_version, customize_mingw,
+-    test_compilation, compile_and_run,
++    compile_and_run,
+     )
+ 
+ #-----------------------------------------------------------------------------

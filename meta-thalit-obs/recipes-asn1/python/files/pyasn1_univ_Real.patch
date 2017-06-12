@@ -1,0 +1,15 @@
+diff --git a/pyasn1/type/univ.py b/pyasn1/type/univ.py
+index 9cd16f8..9d98fef 100644
+--- a/pyasn1/type/univ.py
++++ b/pyasn1/type/univ.py
+@@ -564,7 +564,9 @@ class Real(base.AbstractSimpleAsn1Item):
+         if value in self._inf:
+             return '\'%s\'' % value
+         else:
+-            return str(value)
++            return str(float(
++                value[0] * pow(value[1], value[2])
++                ))
+ 
+     def isPlusInfinity(self): return self._value == self._plusInf
+     def isMinusInfinity(self): return self._value == self._minusInf
