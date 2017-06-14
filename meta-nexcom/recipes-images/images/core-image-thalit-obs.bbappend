@@ -17,14 +17,17 @@ IMAGE_INSTALL_append = " linphone"
 #  QT without gui
 #------------------
 IMAGE_INSTALL_append = " qtbase"
-#IMAGE_INSTALL_append = " qtbase-fonts"
-#IMAGE_INSTALL_append = " qtdeclarative"
+IMAGE_INSTALL_append = " qtbase-fonts"
+IMAGE_INSTALL_append = " qtdeclarative"
 IMAGE_INSTALL_append = " qtlocation"
 IMAGE_INSTALL_append = " qtmultimedia"
+IMAGE_INSTALL_append = " qtquickcontrols"
 IMAGE_INSTALL_append = " qtscript"
 IMAGE_INSTALL_append = " qtserialport"
 IMAGE_INSTALL_append = " qttools"
 IMAGE_INSTALL_append = " qtxmlpatterns"
+
+
 
 # Qt5 toolchain
 inherit populate_sdk_qt5
