@@ -1,0 +1,13 @@
+#!/bin/bash
+echo 'To test RS232 serial ports, follow these instructions:'
+echo '* plug a serial cable into COM1 and COM2 ports'
+echo '* start minicom'
+echo '* open COM2 port (/dev/ttyS1) and configure it 115200 8N1'
+echo '* press ENTER. You should be prompted for login. Login as root.'
+echo '* try for example: '
+echo '  touch file.txt'
+echo '  echo "hello world" > file.txt'
+echo '* close minicom'
+echo '* check the following:'
+echo '  file.txt exists'
+echo '  file.txt contains "hello world"'

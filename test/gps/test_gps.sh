@@ -1,0 +1,10 @@
+#!/bin/bash
+echo 'GPS module U-Blox NEO-M8N (and NEO-M8L) should use virtual serial device /dev/ttyS3.'
+echo 'Enter the commands:'
+echo ''
+echo '  stty -F /dev/ttyS3 raw'
+echo '  cat /dev/ttyS3'
+echo ''
+echo 'You should see NMEA messages begin written to the console. '
+echo 'Ensure the GPS antenna is connected and placed properly in order to receive'
+echo 'GPS coordinates'
